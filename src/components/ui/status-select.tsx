@@ -53,7 +53,7 @@ export function StatusSelect({ value, onChange }: StatusSelectProps) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors w-full"
+        className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-neutral-700 hover:bg-neutral-100 transition-colors w-full"
       >
         <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
         <span className="truncate">{config.label}</span>
@@ -72,7 +72,7 @@ export function StatusSelect({ value, onChange }: StatusSelectProps) {
                 key={opt}
                 type="button"
                 onClick={() => { onChange(opt); setOpen(false); }}
-                className={`flex items-center gap-2 w-full px-3 py-1.5 text-xs transition-colors ${selected ? c.activeBg + " font-medium" : c.bg + " text-neutral-600"}`}
+                className={`flex items-center gap-2 w-full px-3 py-1.5 text-[13px] transition-colors ${selected ? c.activeBg + " font-medium" : c.bg + " text-neutral-600"}`}
               >
                 <span className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`} />
                 {c.label}

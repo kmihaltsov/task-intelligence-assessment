@@ -29,7 +29,7 @@ export function ProcessingView({ events, isStreaming, isDone, error, onComplete 
       {/* Step progress — primary surface */}
       <div className="rounded-xl bg-white shadow-card p-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-sm font-semibold text-neutral-900">
+          <h3 className="text-[15px] font-semibold text-neutral-900">
             Pipeline Progress
           </h3>
         </div>
@@ -39,14 +39,14 @@ export function ProcessingView({ events, isStreaming, isDone, error, onComplete 
       {/* Error state */}
       {error && (
         <div className="rounded-xl bg-red-50 shadow-card p-4 ring-1 ring-inset ring-red-200/60">
-          <p className="text-sm text-red-700">{error}</p>
+          <p className="text-[15px] text-red-700">{error}</p>
         </div>
       )}
 
       {/* Completion state — shown above reasoning log */}
       {isDone && !error && (
         <div className="rounded-xl bg-emerald-50 shadow-card p-4 flex items-center justify-between ring-1 ring-inset ring-emerald-200/60">
-          <p className="text-sm text-emerald-800 font-medium">
+          <p className="text-[15px] text-emerald-800 font-medium">
             {hasCompleted
               ? `Analysis complete \u2014 ${taskIds.size} task${taskIds.size !== 1 ? "s" : ""} processed.`
               : "Pipeline finished."}
@@ -67,7 +67,7 @@ export function ProcessingView({ events, isStreaming, isDone, error, onComplete 
 
       {/* Reasoning timeline — secondary surface, collapsed by default, collapsed on completion */}
       <div className="rounded-xl bg-white shadow-card p-6">
-        <h3 className="text-sm font-semibold text-neutral-900 mb-3">
+        <h3 className="text-[15px] font-semibold text-neutral-900 mb-3">
           Reasoning Log
           {taskIds.size > 0 && (
             <span className="ml-2 text-neutral-400 font-normal">

@@ -60,7 +60,7 @@ export function TaskBoard() {
           onPriorityChange={setPriority}
         />
         {data && (
-          <span className="text-xs text-neutral-400 font-mono tabular-nums shrink-0">
+          <span className="text-[13px] text-neutral-400 font-mono tabular-nums shrink-0">
             {totalCount} task{totalCount !== 1 ? "s" : ""}
           </span>
         )}
@@ -93,10 +93,10 @@ export function TaskBoard() {
               {/* Column header */}
               <div className="flex items-center gap-2 mb-3 px-1.5">
                 <span className={`w-2 h-2 rounded-full shrink-0 ${col.dot}`} />
-                <span className="text-[11px] font-semibold text-neutral-600 uppercase tracking-wide">
+                <span className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
                   {col.label}
                 </span>
-                <span className="text-[10px] text-neutral-400 font-mono tabular-nums ml-auto">
+                <span className="text-[11px] text-neutral-400 font-mono tabular-nums ml-auto">
                   {col.tasks.length}
                 </span>
               </div>
@@ -113,7 +113,7 @@ export function TaskBoard() {
 
                 {col.tasks.length === 0 && (
                   <div className="flex items-center justify-center py-10">
-                    <p className="text-[11px] text-neutral-400">No tasks</p>
+                    <p className="text-xs text-neutral-400">No tasks</p>
                   </div>
                 )}
               </div>
@@ -148,10 +148,10 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" />
         </svg>
       </div>
-      <p className="text-sm font-medium text-neutral-700 mb-1">
+      <p className="text-[15px] font-medium text-neutral-700 mb-1">
         {hasFilters ? "No matching tasks" : "No tasks yet"}
       </p>
-      <p className="text-xs text-neutral-400 max-w-xs mx-auto">
+      <p className="text-[13px] text-neutral-400 max-w-xs mx-auto">
         {hasFilters
           ? "Try adjusting your filters to see more results."
           : "Click \"+ Add Tasks\" in the navigation bar to submit tasks for AI analysis."}

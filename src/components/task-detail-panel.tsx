@@ -31,7 +31,7 @@ function ExecutionStatusBadge({ status }: { status: string }) {
   const c = config[status] ?? config.created;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${c.text}`}>
+    <span className={`inline-flex items-center gap-1.5 text-[13px] font-medium ${c.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
       {status}
     </span>
@@ -93,7 +93,7 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
         <div className="px-6 pt-6 pb-5 bg-ground-50/80">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-semibold text-neutral-900 leading-snug">
+              <h2 className="text-xl font-semibold text-neutral-900 leading-snug">
                 {task.title}
               </h2>
               <div className="flex items-center gap-3 mt-3">
@@ -139,14 +139,14 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
             <div>
               <Label>Domain</Label>
-              <p className="text-xs text-neutral-600 mt-1">
+              <p className="text-[13px] text-neutral-600 mt-1">
                 <InlineEditField value={task.domain || "—"} onSave={handleDomainChange} />
               </p>
             </div>
             {task.actionPlan && (
               <div>
                 <Label>Complexity</Label>
-                <p className="text-xs text-neutral-600 mt-1 capitalize">
+                <p className="text-[13px] text-neutral-600 mt-1 capitalize">
                   <InlineEditField
                     value={task.actionPlan.estimatedComplexity.replace("_", " ")}
                     onSave={handleComplexityChange}
@@ -161,7 +161,7 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
             {task.priority && (
               <div>
                 <Label>Score</Label>
-                <p className="text-xs font-mono text-neutral-600 mt-1">{task.priority.score}/10</p>
+                <p className="text-[13px] font-mono text-neutral-600 mt-1">{task.priority.score}/10</p>
               </div>
             )}
           </div>
@@ -169,13 +169,13 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
           {/* Action plan */}
           {task.actionPlan && (
             <div className="rounded-xl bg-ground-50 shadow-card p-4">
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium mb-2">Action Plan</p>
+              <p className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-2">Action Plan</p>
               {task.actionPlan.summary && (
-                <p className="text-xs text-neutral-500 mb-3 leading-relaxed">{task.actionPlan.summary}</p>
+                <p className="text-[13px] text-neutral-500 mb-3 leading-relaxed">{task.actionPlan.summary}</p>
               )}
               <ol className="space-y-2">
                 {task.actionPlan.steps.map((step) => (
-                  <li key={step.order} className="flex gap-2.5 text-xs">
+                  <li key={step.order} className="flex gap-2.5 text-[13px]">
                     <span className="text-neutral-300 font-mono shrink-0 w-4 text-right tabular-nums mt-px">{step.order}.</span>
                     <span className="text-neutral-700 leading-relaxed">{step.action}</span>
                   </li>
@@ -190,7 +190,7 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
               <Label>Referenced URLs</Label>
               <ul className="mt-1.5 space-y-1">
                 {task.urls.map((url, i) => (
-                  <li key={i} className="text-xs text-accent-600 hover:text-accent-700 truncate transition-colors">
+                  <li key={i} className="text-[13px] text-accent-600 hover:text-accent-700 truncate transition-colors">
                     {url}
                   </li>
                 ))}
@@ -208,14 +208,14 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
 
         {/* Footer */}
         <div className="px-6 py-3 bg-ground-50/60 flex items-center justify-between">
-          <span className="text-[10px] text-neutral-400 font-mono tabular-nums">
+          <span className="text-[11px] text-neutral-400 font-mono tabular-nums">
             {new Date(task.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
           </span>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            className="text-neutral-400 hover:text-red-500 text-xs"
+            className="text-neutral-400 hover:text-red-500 text-[13px]"
           >
             Delete
           </Button>
@@ -227,7 +227,7 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">
+    <span className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
       {children}
     </span>
   );

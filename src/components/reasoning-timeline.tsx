@@ -32,7 +32,7 @@ export function ReasoningTimeline({ events, defaultExpanded = false, collapsed }
     <div className="mt-2">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+        className="flex items-center gap-1.5 text-[13px] text-neutral-500 hover:text-neutral-700 transition-colors"
       >
         <svg
           className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
@@ -49,7 +49,7 @@ export function ReasoningTimeline({ events, defaultExpanded = false, collapsed }
           {events.map((event, i) => {
             const { icon, color } = statusIcons[event.status];
             return (
-              <div key={i} className="flex items-start gap-2 text-xs">
+              <div key={i} className="flex items-start gap-2 text-[13px]">
                 <span className={`font-mono ${color} mt-0.5`}>{icon}</span>
                 <div className="min-w-0 flex-1">
                   <span className="text-neutral-600">{event.message}</span>

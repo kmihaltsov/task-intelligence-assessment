@@ -22,7 +22,7 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
         ${isFailed ? "ring-1 ring-inset ring-red-200/60" : ""}
       `}
     >
-      <p className="text-[13px] text-neutral-800 line-clamp-2 group-hover:text-neutral-950 transition-colors leading-snug">
+      <p className="text-sm text-neutral-800 line-clamp-2 group-hover:text-neutral-950 transition-colors leading-snug">
         {task.title}
       </p>
 
@@ -30,12 +30,12 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
       {(task.priority || task.category) && (
         <div className="flex items-center gap-1.5 mt-2.5">
           {task.priority && (
-            <Badge variant={priorityVariant(task.priority.priority)} className="text-[10px] px-1.5 py-px">
+            <Badge variant={priorityVariant(task.priority.priority)} className="text-[11px] px-1.5 py-0.5">
               {task.priority.priority}
             </Badge>
           )}
           {task.category && (
-            <Badge variant="accent" className="text-[10px] px-1.5 py-px">
+            <Badge variant="accent" className="text-[11px] px-1.5 py-0.5">
               {task.category.category}
             </Badge>
           )}

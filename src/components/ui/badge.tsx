@@ -27,7 +27,7 @@ export function Badge({ variant = "default", className = "", ...props }: BadgePr
   return (
     <span
       className={`
-        inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium
+        inline-flex items-center rounded-md px-2 py-0.5 text-[13px] font-medium
         ${variantStyles[variant]} ${className}
       `}
       {...props}

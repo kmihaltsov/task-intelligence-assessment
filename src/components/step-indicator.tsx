@@ -76,7 +76,7 @@ export function StepIndicator({ events }: StepIndicatorProps) {
                   </svg>
                 )}
               </div>
-              <span className={`text-xs whitespace-nowrap transition-colors ${styles.text}`}>
+              <span className={`text-[13px] whitespace-nowrap transition-colors ${styles.text}`}>
                 {step.label}
               </span>
             </div>
