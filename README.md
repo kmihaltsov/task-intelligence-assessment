@@ -73,6 +73,11 @@ Anthropic SDK is isolated behind a generic `LLMProvider` interface. Only `anthro
 
 - I decided to spend significant amount of time on UX, probing few approaches instead of spend additional time on improving code quality
 - simplified streaming. Production-ready SSE approach would require backend streaming queue (to persist events across potential SSE reconnects), ability to reconnect to a specific stream, etc
+- simplified state machine implementation to cover only MVP requirements
+
+## Actual time spent
+
+Around 6 hours
 
 ## Some things that I'd have done differently in the real life
 
