@@ -16,7 +16,11 @@ interface StepIndicatorProps {
 type StepState = "pending" | "running" | "completed" | "failed" | "retrying";
 
 function getStepState(stepName: string, events: StepEvent[]): StepState {
-  const stepEvents = events.filter((e) => e.stepName === stepName);
+  // Use only pipeline-level events (from state machine), not per-task events,
+  // so a step isn't marked "completed" until all tasks in that step finish.
+  const stepEvents = events.filter(
+    (e) => e.stepName === stepName && e.taskId.startsWith("pipeline"),
+  );
   if (stepEvents.length === 0) return "pending";
 
   if (stepEvents.some((e) => e.status === "failed")) return "failed";

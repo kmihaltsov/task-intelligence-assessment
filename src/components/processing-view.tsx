@@ -17,7 +17,9 @@ export function ProcessingView({ events, isDone, error, onComplete }: Processing
   if (events.length === 0 && !error) return null;
 
   const taskIds = new Set(events.filter((e) => !e.taskId.startsWith("pipeline")).map((e) => e.taskId));
-  const hasCompleted = events.some((e) => e.status === "completed" && e.stepName === "action-plan");
+  const hasCompleted = events.some(
+    (e) => e.status === "completed" && e.stepName === "action-plan" && e.taskId.startsWith("pipeline"),
+  );
 
   return (
     <div className="mt-8 space-y-4 fade-in">
