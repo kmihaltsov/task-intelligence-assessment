@@ -12,30 +12,19 @@ const COMPLEXITY_OPTIONS: ActionPlan["estimatedComplexity"][] = [
   "trivial", "simple", "moderate", "complex", "very_complex",
 ];
 
+const PRIORITIES = ["critical", "high", "medium", "low"] as const;
+
+const CATEGORIES = [
+  "Frontend", "Backend", "Infrastructure", "Design",
+  "DevOps", "Data", "Security", "Testing",
+  "Documentation", "Project Management",
+] as const;
+
 interface TaskDetailPanelProps {
   task: TaskItem;
   onClose: () => void;
   onUpdate: (id: string, patch: Record<string, unknown>) => Promise<TaskItem | null>;
   onDelete: (id: string) => Promise<boolean>;
-}
-
-function ExecutionStatusBadge({ status }: { status: string }) {
-  const config: Record<string, { dot: string; text: string }> = {
-    created: { dot: "bg-neutral-400", text: "text-neutral-500" },
-    categorized: { dot: "bg-accent-400", text: "text-accent-600" },
-    prioritized: { dot: "bg-violet-400", text: "text-violet-600" },
-    completed: { dot: "bg-emerald-400", text: "text-emerald-600" },
-    failed: { dot: "bg-red-400", text: "text-red-600" },
-  };
-
-  const c = config[status] ?? config.created;
-
-  return (
-    <span className={`inline-flex items-center gap-1.5 text-[13px] font-medium ${c.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-      {status}
-    </span>
-  );
 }
 
 export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetailPanelProps) {
@@ -63,6 +52,14 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
 
   function handleDomainChange(value: string) {
     onUpdate(task.id, { domain: value });
+  }
+
+  function handlePriorityChange(value: string) {
+    onUpdate(task.id, { priority: { priority: value } });
+  }
+
+  function handleCategoryChange(value: string) {
+    onUpdate(task.id, { category: { category: value } });
   }
 
   function handleComplexityChange(value: string) {
@@ -96,20 +93,22 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
               <h2 className="text-xl font-semibold text-neutral-900 leading-snug">
                 {task.title}
               </h2>
-              <div className="flex items-center gap-3 mt-3">
+              <div className="flex items-center gap-2 mt-3 flex-wrap">
                 <div onClick={(e) => e.stopPropagation()}>
                   <StatusSelect value={task.status} onChange={handleStatusChange} />
                 </div>
-                {task.priority && (
-                  <Badge variant={priorityVariant(task.priority.priority)}>
-                    {task.priority.priority}
-                  </Badge>
-                )}
-                {task.category && (
-                  <Badge variant="accent">
-                    {task.category.category}
-                  </Badge>
-                )}
+                <div onClick={(e) => e.stopPropagation()}>
+                  <PrioritySelect
+                    value={task.priority?.priority}
+                    onChange={handlePriorityChange}
+                  />
+                </div>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <CategorySelect
+                    value={task.category?.category}
+                    onChange={handleCategoryChange}
+                  />
+                </div>
               </div>
             </div>
             <button
@@ -154,10 +153,6 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
                 </p>
               </div>
             )}
-            <div>
-              <Label>Pipeline</Label>
-              <p className="mt-1"><ExecutionStatusBadge status={task.executionStatus} /></p>
-            </div>
             {task.priority && (
               <div>
                 <Label>Score</Label>
@@ -282,6 +277,112 @@ function EditableDescription({ value, onSave }: { value: string; onSave: (v: str
       title="Click to edit"
     >
       {value || <span className="text-neutral-400">Add a description...</span>}
+    </div>
+  );
+}
+
+const PRIORITY_CONFIG: Record<string, { dot: string; bg: string; activeBg: string }> = {
+  critical: { dot: "bg-red-500", bg: "hover:bg-red-50", activeBg: "bg-red-50" },
+  high: { dot: "bg-orange-500", bg: "hover:bg-orange-50", activeBg: "bg-orange-50" },
+  medium: { dot: "bg-intel-400", bg: "hover:bg-intel-50", activeBg: "bg-intel-50" },
+  low: { dot: "bg-emerald-500", bg: "hover:bg-emerald-50", activeBg: "bg-emerald-50" },
+};
+
+function PrioritySelect({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const current = value ? PRIORITY_CONFIG[value] : null;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-neutral-700 hover:bg-neutral-100 transition-colors"
+      >
+        {current && <span className={`w-2 h-2 rounded-full shrink-0 ${current.dot}`} />}
+        <span className="capitalize">{value || "Set priority"}</span>
+        <svg className="w-3 h-3 text-neutral-400 shrink-0" viewBox="0 0 12 12" fill="currentColor">
+          <path d="M3 5l3 3 3-3" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 w-36 bg-white rounded-lg shadow-md ring-1 ring-neutral-200/60 py-1 z-50 fade-in">
+          {PRIORITIES.map((p) => {
+            const c = PRIORITY_CONFIG[p];
+            const selected = p === value;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => { onChange(p); setOpen(false); }}
+                className={`flex items-center gap-2 w-full px-3 py-1.5 text-[13px] capitalize transition-colors ${selected ? c.activeBg + " font-medium" : c.bg + " text-neutral-600"}`}
+              >
+                <span className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`} />
+                {p}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CategorySelect({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-accent-700 hover:bg-accent-50 transition-colors"
+      >
+        <span>{value || "Set category"}</span>
+        <svg className="w-3 h-3 text-neutral-400 shrink-0" viewBox="0 0 12 12" fill="currentColor">
+          <path d="M3 5l3 3 3-3" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-lg shadow-md ring-1 ring-neutral-200/60 py-1 z-50 fade-in max-h-56 overflow-y-auto">
+          {CATEGORIES.map((cat) => {
+            const selected = cat === value;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => { onChange(cat); setOpen(false); }}
+                className={`flex items-center w-full px-3 py-1.5 text-[13px] transition-colors ${selected ? "bg-accent-50 font-medium text-accent-700" : "text-neutral-600 hover:bg-neutral-50"}`}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

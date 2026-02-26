@@ -99,9 +99,12 @@ npm test
 
 # Trade-offs
 
+- I decided to spend significant amount of time on UX, probing few approaches instead of spend additional time on improving code quality
+- Decided to not spend time on code clean-up (which I would do in the real teamwork)
+
 ## Some things that I'd have done differently in the real project
 
-- Work hardly on refining product requirements, main user scenarious and pain points before I start even tech design thinking
+- Work hard on refining product requirements, main user scenarious and pain points before any dev work
 - React TanQuery for API/caching/state management
 - Langraph like  for agent workflow management / LLM abstraction / etc
 - SSE support - it needs more love especially on disconnect/reconnect piece
@@ -112,3 +115,4 @@ npm test
 - Proper Persistent storage (I used local sql db)
 - RAG for the project/company context. It would drastically improve quality of description/action plan if Agent would knew how Tasks connected to the actual Company/Project
 - cost audit functionality - properly track costs per user/task
+- Agent performance metrics - success/failure/retries

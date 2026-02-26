@@ -27,10 +27,12 @@ export class PrioritizeStep extends Step {
       throw new Error("No tasks found in state");
     }
 
+    let attempted = 0;
     let prioritized = 0;
 
     for (const task of tasks) {
       if (task.executionStatus === "failed") continue;
+      attempted++;
 
       try {
         log.debug({ taskId: task.id, title: task.title }, "Prioritizing task");

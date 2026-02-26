@@ -4,7 +4,6 @@ import type { EventEmitter } from "../state-machine/types";
 import type { LLMProvider } from "../llm/provider";
 import { ActionPlanSchema } from "../llm/schemas";
 import type { TaskItem } from "../types";
-import type { ToolRegistry } from "../tools/tool-registry";
 import { STATE_KEYS } from "./state-keys";
 import { createLogger } from "../logger";
 
@@ -12,17 +11,12 @@ const log = createLogger({ component: "ActionPlanStep" });
 
 /**
  * Generates an action plan for each task.
- * Supports agentic tool use: passes tool definitions to LLM, executes tool calls,
- * and feeds results back before generating the final plan.
  */
 export class ActionPlanStep extends Step {
   readonly name = "action-plan";
   readonly label = "Generating action plans";
 
-  constructor(
-    private llm: LLMProvider,
-    private toolRegistry?: ToolRegistry,
-  ) {
+  constructor(private llm: LLMProvider) {
     super({ maxRetries: 2 });
   }
 
@@ -32,10 +26,12 @@ export class ActionPlanStep extends Step {
       throw new Error("No tasks found in state");
     }
 
+    let attempted = 0;
     let planned = 0;
 
     for (const task of tasks) {
       if (task.executionStatus === "failed") continue;
+      attempted++;
 
       try {
         log.debug({ taskId: task.id, title: task.title }, "Generating action plan");
@@ -48,12 +44,6 @@ export class ActionPlanStep extends Step {
           attempt: 1,
           timestamp: Date.now(),
         });
-
-        // If tools are available and task has URLs, do a tool-use pass first
-        let toolContext = "";
-        if (this.toolRegistry && task.urls.length > 0) {
-          toolContext = await this.executeToolPass(task, emit);
-        }
 
         const categoryContext = task.category
           ? `Category: ${task.category.category} / ${task.category.subcategory}`
@@ -72,7 +62,6 @@ Task: ${task.title}
 Description: ${task.description}
 ${categoryContext}
 ${priorityContext}
-${toolContext ? `\nAdditional context from tools:\n${toolContext}` : ""}
 
 Create a clear, actionable plan with specific steps. Assess the overall complexity.`,
             },
@@ -119,68 +108,5 @@ Create a clear, actionable plan with specific steps. Assess the overall complexi
     state.set(STATE_KEYS.TASKS, tasks);
     log.info({ planned, total: tasks.length }, "Action planning complete");
     return `Generated action plans for ${planned}/${tasks.length} task(s)`;
-  }
-
-  /**
-   * Agentic tool use pass: ask LLM with tools available, execute any tool calls,
-   * and return the aggregated context.
-   */
-  private async executeToolPass(task: TaskItem, emit: EventEmitter): Promise<string> {
-    if (!this.toolRegistry) return "";
-
-    const toolDefs = this.toolRegistry.getToolDefinitions();
-    if (toolDefs.length === 0) return "";
-
-    try {
-      emit({
-        taskId: task.id,
-        stepName: this.name,
-        status: "running",
-        message: "Checking external resources...",
-        attempt: 1,
-        timestamp: Date.now(),
-      });
-
-      const { toolCalls } = await this.llm.requestWithTools(
-        [
-          {
-            role: "user",
-            content: `I'm analyzing this project task and want to gather additional context.
-
-Task: ${task.title}
-Description: ${task.description}
-URLs found: ${task.urls.join(", ")}
-
-Use the available tools to check any relevant URLs or gather additional context. Only use tools if they are relevant.`,
-          },
-        ],
-        toolDefs,
-      );
-
-      if (toolCalls.length === 0) return "";
-
-      const results: string[] = [];
-      for (const call of toolCalls) {
-        log.info({ tool: call.name, input: call.input }, "Executing tool");
-
-        emit({
-          taskId: task.id,
-          stepName: this.name,
-          status: "running",
-          message: `Using tool: ${call.name}`,
-          attempt: 1,
-          data: { tool: call.name },
-          timestamp: Date.now(),
-        });
-
-        const result = await this.toolRegistry.execute(call.name, call.input);
-        results.push(`${call.name}: ${result}`);
-      }
-
-      return results.join("\n");
-    } catch (error) {
-      log.warn({ taskId: task.id, error: String(error) }, "Tool pass failed, continuing without tool context");
-      return "";
-    }
   }
 }

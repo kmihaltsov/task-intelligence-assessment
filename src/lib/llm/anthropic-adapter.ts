@@ -6,14 +6,24 @@ import {
   type LLMResponse,
   type LLMMessage,
   type LLMRequestOptions,
-  type LLMToolDefinition,
-  type ToolCall,
   LLMValidationError,
   LLMProviderError,
 } from "./provider";
 import { createLogger } from "../logger";
 
 const log = createLogger({ component: "AnthropicAdapter" });
+
+const MAX_CORRECTION_ATTEMPTS = 2;
+
+/** Turn Zod's error structure into a human-readable list for the correction prompt. */
+function formatZodErrors(zodError: z.ZodError): string {
+  return zodError.issues
+    .map((issue) => {
+      const path = issue.path.length > 0 ? `"${issue.path.join(".")}"` : "(root)";
+      return `- Field ${path}: ${issue.message}`;
+    })
+    .join("\n");
+}
 
 /**
  * Anthropic Claude adapter.
@@ -32,7 +42,7 @@ export class AnthropicAdapter implements LLMProvider {
       throw new LLMProviderError("ANTHROPIC_API_KEY environment variable is required", undefined, false);
     }
     this.client = new Anthropic({ apiKey });
-    this.model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+    this.model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
   }
 
   async requestStructured<T>(
@@ -41,6 +51,46 @@ export class AnthropicAdapter implements LLMProvider {
     schemaName: string,
     options?: LLMRequestOptions,
   ): Promise<LLMResponse<T>> {
+    const tool = this.buildTool(schema, schemaName);
+    let currentMessages = messages;
+    let lastError: LLMValidationError | undefined;
+
+    for (let attempt = 0; attempt <= MAX_CORRECTION_ATTEMPTS; attempt++) {
+      try {
+        return await this.attemptStructured(currentMessages, schema, schemaName, tool, options);
+      } catch (error) {
+        if (!(error instanceof LLMValidationError) || !error.zodErrors) throw error;
+        lastError = error;
+
+        if (attempt < MAX_CORRECTION_ATTEMPTS) {
+          log.info(
+            { schemaName, attempt: attempt + 1, maxAttempts: MAX_CORRECTION_ATTEMPTS },
+            "Attempting self-correction for schema validation failure",
+          );
+
+          // Build correction context: original conversation + failed output + validation errors
+          currentMessages = [
+            ...currentMessages,
+            { role: "assistant" as const, content: error.rawOutput },
+            {
+              role: "user" as const,
+              content: `Your previous response did not match the required JSON schema "${schemaName}".
+
+Validation errors:
+${formatZodErrors(error.zodErrors)}
+
+Please output a corrected version that strictly matches the schema.`,
+            },
+          ];
+        }
+      }
+    }
+
+    // All correction attempts exhausted — throw the last validation error
+    throw lastError!;
+  }
+
+  private buildTool<T>(schema: z.ZodType<T>, schemaName: string): Anthropic.Messages.Tool {
     // Use jsonSchema7 target — produces numeric exclusiveMinimum/Maximum
     // compatible with JSON Schema draft 2020-12 required by Anthropic's API.
     // Strip the $schema key since Anthropic doesn't accept it.
@@ -48,13 +98,20 @@ export class AnthropicAdapter implements LLMProvider {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { $schema: _schemaKey, ...jsonSchema } = rawSchema as Record<string, unknown>;
 
-    // Use tool_use to force structured output
-    const tool: Anthropic.Messages.Tool = {
+    return {
       name: schemaName,
       description: `Output the result as structured JSON matching the ${schemaName} schema.`,
       input_schema: jsonSchema as Anthropic.Messages.Tool.InputSchema,
     };
+  }
 
+  private async attemptStructured<T>(
+    messages: LLMMessage[],
+    schema: z.ZodType<T>,
+    schemaName: string,
+    tool: Anthropic.Messages.Tool,
+    options?: LLMRequestOptions,
+  ): Promise<LLMResponse<T>> {
     try {
       log.info({ model: this.model, schemaName }, "Requesting structured output");
 
@@ -102,59 +159,6 @@ export class AnthropicAdapter implements LLMProvider {
       return { parsed: result.data, rawText };
     } catch (error) {
       if (error instanceof LLMValidationError) throw error;
-      if (error instanceof Anthropic.APIError) {
-        throw new LLMProviderError(
-          error.message,
-          error.status,
-          error.status === 429 || error.status >= 500,
-        );
-      }
-      throw error;
-    }
-  }
-
-  async requestWithTools(
-    messages: LLMMessage[],
-    tools: LLMToolDefinition[],
-    options?: Omit<LLMRequestOptions, "tools">,
-  ): Promise<{ text: string; toolCalls: ToolCall[] }> {
-    const anthropicTools: Anthropic.Messages.Tool[] = tools.map((t) => ({
-      name: t.name,
-      description: t.description,
-      input_schema: t.inputSchema as Anthropic.Messages.Tool.InputSchema,
-    }));
-
-    try {
-      log.info({ model: this.model, toolCount: tools.length }, "Requesting with tools");
-
-      const response = await this.client.messages.create({
-        model: this.model,
-        max_tokens: options?.maxTokens ?? 4096,
-        temperature: options?.temperature ?? 0.3,
-        tools: anthropicTools,
-        messages: messages.map((m) => ({ role: m.role, content: m.content })),
-      });
-
-      log.info(
-        { model: this.model, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens },
-        "LLM response received",
-      );
-
-      const text = response.content
-        .filter((b): b is Anthropic.Messages.TextBlock => b.type === "text")
-        .map((b) => b.text)
-        .join("\n");
-
-      const toolCalls: ToolCall[] = response.content
-        .filter((b): b is Anthropic.Messages.ToolUseBlock => b.type === "tool_use")
-        .map((b) => ({
-          id: b.id,
-          name: b.name,
-          input: b.input as Record<string, unknown>,
-        }));
-
-      return { text, toolCalls };
-    } catch (error) {
       if (error instanceof Anthropic.APIError) {
         throw new LLMProviderError(
           error.message,

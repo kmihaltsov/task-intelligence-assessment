@@ -27,10 +27,12 @@ export class CategorizeStep extends Step {
       throw new Error("No tasks found in state");
     }
 
+    let attempted = 0;
     let categorized = 0;
 
     for (const task of tasks) {
       if (task.executionStatus === "failed") continue;
+      attempted++;
 
       try {
         log.debug({ taskId: task.id, title: task.title }, "Categorizing task");

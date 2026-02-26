@@ -4,13 +4,6 @@ import type { z } from "zod";
 export interface LLMResponse<T> {
   parsed: T;
   rawText: string;
-  toolCalls?: ToolCall[];
-}
-
-export interface ToolCall {
-  id: string;
-  name: string;
-  input: Record<string, unknown>;
 }
 
 export interface LLMMessage {
@@ -21,13 +14,6 @@ export interface LLMMessage {
 export interface LLMRequestOptions {
   temperature?: number;
   maxTokens?: number;
-  tools?: LLMToolDefinition[];
-}
-
-export interface LLMToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: Record<string, unknown>;
 }
 
 /**
@@ -45,16 +31,6 @@ export interface LLMProvider {
     schemaName: string,
     options?: LLMRequestOptions,
   ): Promise<LLMResponse<T>>;
-
-  /**
-   * Request unstructured (freeform) text + optional tool calls.
-   * Used when the step needs tool use without structured output.
-   */
-  requestWithTools(
-    messages: LLMMessage[],
-    tools: LLMToolDefinition[],
-    options?: Omit<LLMRequestOptions, "tools">,
-  ): Promise<{ text: string; toolCalls: ToolCall[] }>;
 }
 
 /** Thrown when LLM output doesn't match the expected schema */
@@ -78,5 +54,29 @@ export class LLMProviderError extends Error {
   ) {
     super(message);
     this.name = "LLMProviderError";
+  }
+}
+
+/**
+ * Factory that returns the configured LLM provider.
+ * Keeps concrete adapter imports out of business logic — only this file
+ * knows which SDK is in use.
+ */
+export function createLLMProvider(): LLMProvider {
+  const provider = (process.env.LLM_PROVIDER || "anthropic").toLowerCase();
+
+  switch (provider) {
+    case "anthropic": {
+      // Dynamic require avoids importing the SDK at module level in consumers
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { AnthropicAdapter } = require("./anthropic-adapter");
+      return new AnthropicAdapter();
+    }
+    default:
+      throw new LLMProviderError(
+        `Unknown LLM_PROVIDER "${provider}". Supported: anthropic`,
+        undefined,
+        false,
+      );
   }
 }

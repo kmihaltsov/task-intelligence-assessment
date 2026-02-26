@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { InMemoryStateStore } from "@/lib/state-machine/state-store";
 import type { StepEvent } from "@/lib/state-machine/types";
-import { AnthropicAdapter } from "@/lib/llm/anthropic-adapter";
+import { createLLMProvider } from "@/lib/llm/provider";
 import { createTaskPipeline } from "@/lib/steps/pipeline";
-import { ToolRegistry } from "@/lib/tools/tool-registry";
-import { urlHealthCheckTool } from "@/lib/tools/url-health-check";
 import { taskStore } from "@/lib/store/task-store";
 import { STATE_KEYS } from "@/lib/steps/state-keys";
 import { createLogger } from "@/lib/logger";
@@ -66,9 +64,8 @@ export async function POST(request: NextRequest) {
       // Non-awaited IIFE — returns Response immediately while pipeline runs
       (async () => {
         try {
-          const llm = new AnthropicAdapter();
-          const toolRegistry = new ToolRegistry().register(urlHealthCheckTool);
-          const pipeline = createTaskPipeline(llm, toolRegistry);
+          const llm = createLLMProvider();
+          const pipeline = createTaskPipeline(llm);
 
           const state = new InMemoryStateStore();
           state.set(STATE_KEYS.RAW_INPUT, rawInput);
