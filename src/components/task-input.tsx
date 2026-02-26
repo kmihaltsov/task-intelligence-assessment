@@ -1,18 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 
 interface TaskInputProps {
   onSubmit: (tasks: string[]) => void;
   disabled?: boolean;
+  clearSignal?: number;
 }
 
 /**
  * Textarea + submit for raw task input. Supports bulk input (newline-separated).
+ * Bump `clearSignal` to clear the textarea externally.
  */
-export function TaskInput({ onSubmit, disabled }: TaskInputProps) {
+export function TaskInput({ onSubmit, disabled, clearSignal }: TaskInputProps) {
   const [value, setValue] = useState("");
+
+  useEffect(() => {
+    if (clearSignal) setValue("");
+  }, [clearSignal]);
 
   function handleSubmit() {
     const tasks = value

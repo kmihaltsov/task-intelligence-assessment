@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NavActions } from "@/components/nav-actions";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,20 +26,7 @@ export default function RootLayout({
                 Task Intelligence
               </span>
             </Link>
-            <div className="flex items-center gap-1">
-              <Link
-                href="/"
-                className="px-3 py-1.5 rounded-md text-sm text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
-              >
-                Submit
-              </Link>
-              <Link
-                href="/tasks"
-                className="px-3 py-1.5 rounded-md text-sm text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
-              >
-                Tasks
-              </Link>
-            </div>
+            <NavActions />
           </div>
         </nav>
         <main className="mx-auto max-w-6xl px-6 py-10">

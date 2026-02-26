@@ -11,16 +11,17 @@ interface ProcessingViewProps {
   isStreaming: boolean;
   isDone: boolean;
   error: string | null;
+  onComplete?: () => void;
 }
 
 /**
  * Real-time processing display shown while SSE streams.
  * The pipeline view is the product's signature — not a loading screen.
  */
-export function ProcessingView({ events, isStreaming, isDone, error }: ProcessingViewProps) {
+export function ProcessingView({ events, isStreaming, isDone, error, onComplete }: ProcessingViewProps) {
   if (events.length === 0 && !error) return null;
 
-  const taskIds = new Set(events.filter((e) => e.taskId !== "pipeline").map((e) => e.taskId));
+  const taskIds = new Set(events.filter((e) => !e.taskId.startsWith("pipeline")).map((e) => e.taskId));
   const hasCompleted = events.some((e) => e.status === "completed" && e.stepName === "action-plan");
 
   return (
@@ -31,27 +32,8 @@ export function ProcessingView({ events, isStreaming, isDone, error }: Processin
           <h3 className="text-sm font-semibold text-neutral-900">
             Pipeline Progress
           </h3>
-          {isStreaming && (
-            <span className="flex items-center gap-2 text-xs text-intel-600 font-medium">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-intel-400 intel-pulse" />
-              Analyzing
-            </span>
-          )}
         </div>
         <StepIndicator events={events} />
-      </div>
-
-      {/* Reasoning timeline — secondary surface */}
-      <div className="rounded-xl bg-white shadow-card p-6">
-        <h3 className="text-sm font-semibold text-neutral-900 mb-3">
-          Reasoning Log
-          {taskIds.size > 0 && (
-            <span className="ml-2 text-neutral-400 font-normal">
-              {taskIds.size} task{taskIds.size !== 1 ? "s" : ""}
-            </span>
-          )}
-        </h3>
-        <ReasoningTimeline events={events} defaultExpanded />
       </div>
 
       {/* Error state */}
@@ -61,7 +43,7 @@ export function ProcessingView({ events, isStreaming, isDone, error }: Processin
         </div>
       )}
 
-      {/* Completion state */}
+      {/* Completion state — shown above reasoning log */}
       {isDone && !error && (
         <div className="rounded-xl bg-emerald-50 shadow-card p-4 flex items-center justify-between ring-1 ring-inset ring-emerald-200/60">
           <p className="text-sm text-emerald-800 font-medium">
@@ -69,13 +51,32 @@ export function ProcessingView({ events, isStreaming, isDone, error }: Processin
               ? `Analysis complete \u2014 ${taskIds.size} task${taskIds.size !== 1 ? "s" : ""} processed.`
               : "Pipeline finished."}
           </p>
-          <Link href="/tasks">
-            <Button variant="secondary" size="sm">
-              View Tasks \u2192
+          {onComplete ? (
+            <Button variant="secondary" size="sm" onClick={onComplete}>
+              Close
             </Button>
-          </Link>
+          ) : (
+            <Link href="/tasks">
+              <Button variant="secondary" size="sm">
+                View Tasks \u2192
+              </Button>
+            </Link>
+          )}
         </div>
       )}
+
+      {/* Reasoning timeline — secondary surface, collapsed by default, collapsed on completion */}
+      <div className="rounded-xl bg-white shadow-card p-6">
+        <h3 className="text-sm font-semibold text-neutral-900 mb-3">
+          Reasoning Log
+          {taskIds.size > 0 && (
+            <span className="ml-2 text-neutral-400 font-normal">
+              {taskIds.size} task{taskIds.size !== 1 ? "s" : ""}
+            </span>
+          )}
+        </h3>
+        <ReasoningTimeline events={events} collapsed={isDone} />
+      </div>
     </div>
   );
 }

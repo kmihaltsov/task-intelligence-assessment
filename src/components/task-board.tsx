@@ -7,7 +7,6 @@ import { TaskCard } from "./task-card";
 import { TaskDetailPanel } from "./task-detail-panel";
 import { FilterBar } from "./filter-bar";
 import { KanbanColumnSkeleton } from "./ui/skeleton";
-import { Button } from "./ui/button";
 
 const COLUMNS: { status: TaskStatus; label: string; dot: string }[] = [
   { status: "backlog", label: "Backlog", dot: "bg-neutral-400" },
@@ -29,9 +28,18 @@ export function TaskBoard() {
 
   const filteredItems = data?.items ?? [];
 
+  const priorityOrder: Record<string, number> = {
+    critical: 0,
+    high: 1,
+    medium: 2,
+    low: 3,
+  };
+
   const columns = COLUMNS.map((col) => ({
     ...col,
-    tasks: filteredItems.filter((t) => t.status === col.status),
+    tasks: filteredItems
+      .filter((t) => t.status === col.status)
+      .sort((a, b) => (priorityOrder[a.priority?.priority ?? ""] ?? 4) - (priorityOrder[b.priority?.priority ?? ""] ?? 4)),
   }));
 
   const totalCount = filteredItems.length;
@@ -146,13 +154,8 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
       <p className="text-xs text-neutral-400 max-w-xs mx-auto">
         {hasFilters
           ? "Try adjusting your filters to see more results."
-          : "Submit tasks on the home page to have them analyzed and prioritized by AI."}
+          : "Click \"+ Add Tasks\" in the navigation bar to submit tasks for AI analysis."}
       </p>
-      {!hasFilters && (
-        <Button variant="secondary" size="sm" className="mt-5" onClick={() => window.location.href = "/"}>
-          Submit tasks
-        </Button>
-      )}
     </div>
   );
 }

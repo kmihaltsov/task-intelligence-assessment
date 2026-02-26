@@ -1,27 +1,18 @@
 "use client";
 
-import { TaskInput } from "@/components/task-input";
-import { ProcessingView } from "@/components/processing-view";
-import { useTaskStream } from "@/hooks/use-task-stream";
+import { TaskBoard } from "@/components/task-board";
 
 export default function HomePage() {
-  const { events, isStreaming, isDone, error, submit } = useTaskStream();
-
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Submit Tasks</h1>
-      <p className="text-neutral-500 mb-8 text-sm">
-        Enter raw project tasks for AI-powered categorization, prioritization, and action planning.
-      </p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-neutral-900">Tasks</h1>
+        <p className="text-neutral-400 text-xs mt-1">
+          Categorized and prioritized by AI
+        </p>
+      </div>
 
-      <TaskInput onSubmit={submit} disabled={isStreaming} />
-
-      <ProcessingView
-        events={events}
-        isStreaming={isStreaming}
-        isDone={isDone}
-        error={error}
-      />
+      <TaskBoard />
     </div>
   );
 }

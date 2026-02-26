@@ -6,6 +6,7 @@ import type { StepEvent, StepStatus } from "@/lib/state-machine/types";
 interface ReasoningTimelineProps {
   events: StepEvent[];
   defaultExpanded?: boolean;
+  collapsed?: boolean;
 }
 
 const statusIcons: Record<StepStatus, { icon: string; color: string }> = {
@@ -20,8 +21,10 @@ const statusIcons: Record<StepStatus, { icon: string; color: string }> = {
  * Collapsible event timeline showing step-by-step reasoning.
  * Uses amber/intelligence tokens for active analysis moments.
  */
-export function ReasoningTimeline({ events, defaultExpanded = false }: ReasoningTimelineProps) {
+export function ReasoningTimeline({ events, defaultExpanded = false, collapsed }: ReasoningTimelineProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+
+  const isExpanded = collapsed ? false : expanded;
 
   if (events.length === 0) return null;
 
@@ -32,7 +35,7 @@ export function ReasoningTimeline({ events, defaultExpanded = false }: Reasoning
         className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
       >
         <svg
-          className={`w-3 h-3 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+          className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
           viewBox="0 0 12 12"
           fill="currentColor"
         >
@@ -41,7 +44,7 @@ export function ReasoningTimeline({ events, defaultExpanded = false }: Reasoning
         {events.length} reasoning step{events.length !== 1 ? "s" : ""}
       </button>
 
-      {expanded && (
+      {isExpanded && (
         <div className="mt-2 ml-1.5 border-l-2 border-neutral-200 pl-3 space-y-1 fade-in">
           {events.map((event, i) => {
             const { icon, color } = statusIcons[event.status];
