@@ -1,0 +1,50 @@
+import { HTMLAttributes } from "react";
+
+interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
+  width?: string;
+  height?: string;
+}
+
+export function Skeleton({ width, height, className = "", style, ...props }: SkeletonProps) {
+  return (
+    <div
+      className={`animate-pulse rounded-md bg-neutral-100 ${className}`}
+      style={{ width, height, ...style }}
+      {...props}
+    />
+  );
+}
+
+/** Skeleton card matching the compact task card shape */
+export function TaskCardSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow-card p-3 space-y-2">
+      <Skeleton className="h-4 w-4/5" />
+      <Skeleton className="h-3.5 w-3/5" />
+      <div className="flex gap-1.5 pt-0.5">
+        <Skeleton className="h-4 w-10 rounded-md" />
+        <Skeleton className="h-4 w-14 rounded-md" />
+      </div>
+    </div>
+  );
+}
+
+/** Skeleton for a full Kanban column with card placeholders */
+export function KanbanColumnSkeleton() {
+  return (
+    <div className="bg-ground-100/50 rounded-xl p-3">
+      {/* Column header skeleton */}
+      <div className="flex items-center gap-2 mb-3 px-1">
+        <Skeleton className="h-2 w-2 rounded-full" />
+        <Skeleton className="h-3.5 w-20" />
+        <Skeleton className="h-3 w-5" />
+      </div>
+      {/* Card skeletons */}
+      <div className="space-y-2">
+        <TaskCardSkeleton />
+        <TaskCardSkeleton />
+        <TaskCardSkeleton />
+      </div>
+    </div>
+  );
+}

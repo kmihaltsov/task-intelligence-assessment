@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@theme {
+  /* Ground — warm stone, not clinical gray */
+  --color-ground-50: #FAFAF8;
+  --color-ground-100: #F5F4F0;
+  --color-ground-200: #ECEAE4;
+
+  /* Neutral — warm slate undertone */
+  --color-neutral-50: #FAFAF8;
+  --color-neutral-100: #F5F4F0;
+  --color-neutral-200: #E8E6E1;
+  --color-neutral-300: #D5D3CD;
+  --color-neutral-400: #A09E97;
+  --color-neutral-500: #6F6D66;
+  --color-neutral-600: #514F49;
+  --color-neutral-700: #3D3B36;
+  --color-neutral-800: #282723;
+  --color-neutral-900: #1A1A2E;
+  --color-neutral-950: #0F0F1A;
+
+  /* Accent — indigo-violet, warmer than stock */
+  --color-accent-50: #F0EEFF;
+  --color-accent-100: #E2DFFF;
+  --color-accent-200: #C8C3FE;
+  --color-accent-300: #A9A1FC;
+  --color-accent-400: #8B80F8;
+  --color-accent-500: #5B5BD6;
+  --color-accent-600: #4C3FC7;
+  --color-accent-700: #3F33AB;
+  --color-accent-800: #332A8C;
+  --color-accent-900: #2A2370;
+
+  /* Intelligence — amber, signals AI reasoning moments */
+  --color-intel-50: #FDF8EF;
+  --color-intel-100: #FAEFD9;
+  --color-intel-200: #F3DDB0;
+  --color-intel-300: #EBCA82;
+  --color-intel-400: #D4A843;
+  --color-intel-500: #C4952E;
+  --color-intel-600: #A67A22;
+  --color-intel-700: #87611D;
+  --color-intel-800: #6B4D1A;
+  --color-intel-900: #523C16;
+
+  /* Priority colors — same semantic, tuned warmth */
+  --color-priority-critical: #E5484D;
+  --color-priority-high: #E5702A;
+  --color-priority-medium: #D4A843;
+  --color-priority-low: #30A46C;
+
+  /* Step status colors */
+  --color-step-pending: #A09E97;
+  --color-step-running: #D4A843;
+  --color-step-completed: #30A46C;
+  --color-step-failed: #E5484D;
+  --color-step-retrying: #E5702A;
+
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Shadows — warm undertone */
+  --shadow-xs: 0 1px 2px 0 rgb(26 26 46 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(26 26 46 / 0.04), 0 1px 2px -1px rgb(26 26 46 / 0.03);
+  --shadow-md: 0 4px 8px -2px rgb(26 26 46 / 0.06), 0 2px 4px -2px rgb(26 26 46 / 0.04);
+  --shadow-lg: 0 12px 24px -4px rgb(26 26 46 / 0.08), 0 4px 8px -4px rgb(26 26 46 / 0.04);
+  --shadow-card: 0 1px 3px 0 rgb(26 26 46 / 0.04), 0 1px 2px -1px rgb(26 26 46 / 0.02);
+  --shadow-card-hover: 0 4px 12px -2px rgb(26 26 46 / 0.08), 0 2px 4px -2px rgb(26 26 46 / 0.04);
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-sans);
+  color: var(--color-neutral-900);
+  background: var(--color-ground-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading tracking — tighter for density */
+h1, h2, h3, h4 {
+  letter-spacing: -0.025em;
+}
+
+/* Transitions for anti-jank */
+.fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-down {
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+/* Intelligence pulse — amber glow for AI-active moments */
+@keyframes intellPulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgb(212 168 67 / 0.3);
+  }
+  50% {
+    opacity: 0.85;
+    box-shadow: 0 0 0 6px rgb(212 168 67 / 0);
+  }
+}
+
+.intel-pulse {
+  animation: intellPulse 2s ease-in-out infinite;
+}
+
+/* Kanban board — 3 equal columns */
+.kanban-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+/* Detail panel slide-in */
+.slide-in-right {
+  animation: slideInRight 0.2s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Warm focus ring */
+*:focus-visible {
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
+}
