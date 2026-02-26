@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useRef } from "react";
 import type { TaskItem, TaskStatus, ActionPlan } from "@/lib/types";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { StatusSelect } from "./ui/status-select";
 import { InlineEditField } from "./inline-edit-field";
 import { ReasoningTimeline } from "./reasoning-timeline";
 import { Button } from "./ui/button";
-import { Badge, priorityVariant } from "./ui/badge";
 
 const COMPLEXITY_OPTIONS: ActionPlan["estimatedComplexity"][] = [
   "trivial", "simple", "moderate", "complex", "very_complex",
@@ -36,7 +36,6 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // Lock body scroll while panel is open
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
@@ -78,15 +77,12 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-neutral-950/15 z-40 backdrop-fade"
         onClick={onClose}
       />
 
-      {/* Panel */}
       <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-panel z-50 flex flex-col slide-in-right">
-        {/* Header */}
         <div className="px-6 pt-6 pb-5 bg-ground-50/80">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
@@ -123,9 +119,7 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
           </div>
         </div>
 
-        {/* Body — scrollable */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          {/* Description — always visible, editable */}
           <div>
             <Label>Description</Label>
             <EditableDescription
@@ -134,7 +128,6 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
             />
           </div>
 
-          {/* Metadata */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
             <div>
               <Label>Domain</Label>
@@ -161,7 +154,6 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
             )}
           </div>
 
-          {/* Action plan */}
           {task.actionPlan && (
             <div className="rounded-xl bg-ground-50 shadow-card p-4">
               <p className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-2">Action Plan</p>
@@ -179,7 +171,6 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
             </div>
           )}
 
-          {/* URLs */}
           {task.urls.length > 0 && (
             <div>
               <Label>Referenced URLs</Label>
@@ -193,7 +184,6 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
             </div>
           )}
 
-          {/* Reasoning timeline */}
           {task.events && task.events.length > 0 && (
             <div className="pt-4 mt-2 border-t border-ground-200/60">
               <ReasoningTimeline events={task.events} />
@@ -201,7 +191,6 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-3 bg-ground-50/60 flex items-center justify-between">
           <span className="text-[11px] text-neutral-400 font-mono tabular-nums">
             {new Date(task.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
@@ -290,16 +279,7 @@ const PRIORITY_CONFIG: Record<string, { dot: string; bg: string; activeBg: strin
 
 function PrioritySelect({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
+  const ref = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
 
   const current = value ? PRIORITY_CONFIG[value] : null;
 
@@ -342,16 +322,7 @@ function PrioritySelect({ value, onChange }: { value?: string; onChange: (v: str
 
 function CategorySelect({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
+  const ref = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
 
   return (
     <div ref={ref} className="relative">

@@ -10,22 +10,19 @@ interface TaskStreamState {
   isDone: boolean;
 }
 
-/**
- * SSE consumer hook using fetch + ReadableStream (not EventSource, since we need POST).
- * Parses SSE lines and returns events as they arrive.
- */
+const INITIAL_STATE: TaskStreamState = {
+  events: [],
+  isStreaming: false,
+  error: null,
+  isDone: false,
+};
+
 export function useTaskStream() {
-  const [state, setState] = useState<TaskStreamState>({
-    events: [],
-    isStreaming: false,
-    error: null,
-    isDone: false,
-  });
+  const [state, setState] = useState<TaskStreamState>(INITIAL_STATE);
   const abortRef = useRef<AbortController | null>(null);
 
   const submit = useCallback(async (tasks: string[]) => {
-    // Reset state
-    setState({ events: [], isStreaming: true, error: null, isDone: false });
+    setState({ ...INITIAL_STATE, isStreaming: true });
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -55,7 +52,6 @@ export function useTaskStream() {
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
-        // Keep the last potentially incomplete line in the buffer
         buffer = lines.pop() || "";
 
         for (const line of lines) {
@@ -74,7 +70,7 @@ export function useTaskStream() {
               events: [...prev.events, event],
             }));
           } catch {
-            // Skip malformed SSE lines
+            // Malformed SSE line
           }
         }
       }

@@ -8,7 +8,6 @@ interface FilterBarProps {
 }
 
 const CATEGORIES = [
-  "",
   "Frontend",
   "Backend",
   "Infrastructure",
@@ -21,7 +20,7 @@ const CATEGORIES = [
   "Project Management",
 ];
 
-const PRIORITIES = ["", "critical", "high", "medium", "low"];
+const PRIORITIES = ["critical", "high", "medium", "low"];
 
 export function FilterBar({
   category,
@@ -38,7 +37,7 @@ export function FilterBar({
         onChange={onCategoryChange}
         options={[
           { value: "", label: "All categories" },
-          ...CATEGORIES.filter(Boolean).map((c) => ({ value: c, label: c })),
+          ...CATEGORIES.map((c) => ({ value: c, label: c })),
         ]}
         active={!!category}
       />
@@ -47,7 +46,7 @@ export function FilterBar({
         onChange={onPriorityChange}
         options={[
           { value: "", label: "All priorities" },
-          ...PRIORITIES.filter(Boolean).map((p) => ({
+          ...PRIORITIES.map((p) => ({
             value: p,
             label: p.charAt(0).toUpperCase() + p.slice(1),
           })),

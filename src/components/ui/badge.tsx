@@ -35,7 +35,6 @@ export function Badge({ variant = "default", className = "", ...props }: BadgePr
   );
 }
 
-/** Convenience: returns the correct variant for a priority string */
 export function priorityVariant(priority?: string): BadgeVariant {
   return priorityVariantMap[priority?.toLowerCase() ?? ""] ?? "default";
 }

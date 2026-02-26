@@ -14,7 +14,6 @@ import { createLogger } from "../logger";
 
 const log = createLogger({ component: "SqliteTaskStore" });
 
-/** Row shape coming out of SQLite (all JSON columns are strings) */
 interface TaskRow {
   id: string;
   execution_status: string;
@@ -39,7 +38,6 @@ export class SqliteTaskStore implements TaskStore {
     const resolvedPath =
       dbPath ?? path.join(process.cwd(), "data", "tasks.db");
 
-    // Ensure the data directory exists
     const dir = path.dirname(resolvedPath);
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
@@ -47,7 +45,6 @@ export class SqliteTaskStore implements TaskStore {
 
     this.db = new Database(resolvedPath);
 
-    // Enable WAL mode for better concurrent read performance
     this.db.pragma("journal_mode = WAL");
 
     this.migrate();
@@ -78,7 +75,6 @@ export class SqliteTaskStore implements TaskStore {
       CREATE INDEX IF NOT EXISTS idx_tasks_created_at       ON tasks(created_at DESC);
     `);
 
-    // Migration: rename old `status` column → `execution_status` for existing databases
     const columns = this.db.pragma("table_info(tasks)") as { name: string }[];
     const colNames = columns.map((c) => c.name);
     if (colNames.includes("status") && !colNames.includes("execution_status")) {
@@ -132,7 +128,6 @@ export class SqliteTaskStore implements TaskStore {
     const params: Record<string, unknown> = {};
 
     if (opts.category) {
-      // category is stored as JSON; extract with json_extract
       conditions.push(
         "LOWER(json_extract(category, '$.category')) = LOWER(@category)",
       );
@@ -197,8 +192,6 @@ export class SqliteTaskStore implements TaskStore {
     }
     return deleted;
   }
-
-  // --- serialization helpers ---
 
   private toRow(task: TaskItem): Record<string, unknown> {
     return {

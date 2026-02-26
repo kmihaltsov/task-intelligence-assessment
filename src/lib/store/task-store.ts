@@ -1,6 +1,6 @@
 import type { TaskItem, PaginatedResponse } from "../types";
+import { SqliteTaskStore } from "./sqlite-store";
 
-/** Interface for task storage */
 export interface TaskStore {
   save(task: TaskItem): void;
   get(id: string): TaskItem | undefined;
@@ -14,16 +14,22 @@ export interface TaskStore {
   delete(id: string): boolean;
 }
 
-import { SqliteTaskStore } from "./sqlite-store";
-
-/** Lazily-initialized singleton — avoids SQLite constructor during Next.js build */
 let _store: TaskStore | undefined;
 
+function getStore(): TaskStore {
+  if (!_store) {
+    _store = new SqliteTaskStore(process.env.DB_PATH);
+  }
+  return _store;
+}
+
 export const taskStore: TaskStore = new Proxy({} as TaskStore, {
-  get(_target, prop: string) {
-    if (!_store) {
-      _store = new SqliteTaskStore(process.env.DB_PATH);
+  get(_target, prop: keyof TaskStore) {
+    const store = getStore();
+    const value = store[prop];
+    if (typeof value === "function") {
+      return value.bind(store);
     }
-    return (_store as unknown as Record<string, unknown>)[prop];
+    return value;
   },
 });

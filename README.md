@@ -6,7 +6,8 @@ AI-powered task analysis tool that categorizes, prioritizes, and generates actio
 
 ### Pipeline Engine (Custom State Machine)
 
-The core engine is a hand-built state machine inspired by LangGraph — no LangChain, CrewAI, or Vercel AI SDK agent components.
+The core engine is a hand-built state machine.
+State
 
 ```
 Raw Input → ParseStep → CategorizeStep → PrioritizeStep → ActionPlanStep → Completed Tasks
@@ -21,7 +22,6 @@ Raw Input → ParseStep → CategorizeStep → PrioritizeStep → ActionPlanStep
 - **`Step`** — Abstract class. Each concrete step implements `execute(state, emit)`. Steps do NOT handle retries — they throw on failure.
 - **`StateMachine`** — Orchestrator that runs steps sequentially with configurable retry logic per step. Emits structured events for real-time UI updates.
 - **`StateStore`** — Interface-based shared state (in-memory Map). Steps read/write to a common store. Designed for future swap to persistent storage.
-- **Progressive persistence** — After each step completes, the machine syncs task state to the server store. Tasks appear on the dashboard immediately after parsing and progressively update.
 
 ### LLM Provider Abstraction
 

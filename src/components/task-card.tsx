@@ -26,7 +26,6 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
         {task.title}
       </p>
 
-      {/* Badges */}
       {(task.priority || task.category) && (
         <div className="flex items-center gap-1.5 mt-2.5">
           {task.priority && (

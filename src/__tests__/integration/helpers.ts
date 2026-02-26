@@ -5,13 +5,8 @@ import type { TaskItem, PaginatedResponse } from "@/lib/types";
 
 const BASE_URL = process.env.TEST_BASE_URL || "http://localhost:3000";
 
-/** Test DB lives alongside production DB but in a separate file */
 export const TEST_DB_PATH = path.join(process.cwd(), "data", "tasks-test.db");
 
-/**
- * Truncate the tasks table in the test database.
- * Creates the table if it doesn't exist yet (first run).
- */
 export function cleanDatabase(): void {
   const db = new Database(TEST_DB_PATH);
   db.exec(`
@@ -35,10 +30,6 @@ export function cleanDatabase(): void {
   db.close();
 }
 
-/**
- * Submit tasks via POST /api/tasks and consume the SSE stream.
- * Returns collected StepEvents once the stream completes.
- */
 export async function submitAndConsume(tasks: string[]): Promise<StepEvent[]> {
   const response = await fetch(`${BASE_URL}/api/tasks`, {
     method: "POST",
@@ -54,9 +45,6 @@ export async function submitAndConsume(tasks: string[]): Promise<StepEvent[]> {
   return consumeSSE(response);
 }
 
-/**
- * Read SSE events from a Response until [DONE].
- */
 export async function consumeSSE(response: Response): Promise<StepEvent[]> {
   const reader = response.body?.getReader();
   if (!reader) throw new Error("No response body");
@@ -81,7 +69,7 @@ export async function consumeSSE(response: Response): Promise<StepEvent[]> {
       try {
         events.push(JSON.parse(data));
       } catch {
-        // skip malformed
+        // Malformed SSE line
       }
     }
   }
@@ -89,9 +77,6 @@ export async function consumeSSE(response: Response): Promise<StepEvent[]> {
   return events;
 }
 
-/**
- * GET /api/tasks with optional query params.
- */
 export async function getTasks(params?: {
   page?: number;
   pageSize?: number;
@@ -109,18 +94,12 @@ export async function getTasks(params?: {
   return response.json();
 }
 
-/**
- * GET /api/tasks/:id
- */
 export async function getTask(id: string): Promise<TaskItem> {
   const response = await fetch(`${BASE_URL}/api/tasks/${id}`);
   if (!response.ok) throw new Error(`GET /api/tasks/${id} failed: ${response.status}`);
   return response.json();
 }
 
-/**
- * PATCH /api/tasks/:id
- */
 export async function patchTask(
   id: string,
   patch: Record<string, unknown>,

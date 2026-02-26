@@ -17,10 +17,6 @@ const statusIcons: Record<StepStatus, { icon: string; color: string }> = {
   failed: { icon: "\u2717", color: "text-red-500" },
 };
 
-/**
- * Collapsible event timeline showing step-by-step reasoning.
- * Uses amber/intelligence tokens for active analysis moments.
- */
 export function ReasoningTimeline({ events, defaultExpanded = false, collapsed }: ReasoningTimelineProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 

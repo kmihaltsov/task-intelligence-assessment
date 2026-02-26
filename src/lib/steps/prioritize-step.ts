@@ -9,10 +9,6 @@ import { createLogger } from "../logger";
 
 const log = createLogger({ component: "PrioritizeStep" });
 
-/**
- * Assesses priority for each task by calling the LLM per task.
- * Sets `priority` and updates `executionStatus` to "prioritized" on each TaskItem.
- */
 export class PrioritizeStep extends Step {
   readonly name = "prioritize";
   readonly label = "Assessing priority";
@@ -27,12 +23,10 @@ export class PrioritizeStep extends Step {
       throw new Error("No tasks found in state");
     }
 
-    let attempted = 0;
     let prioritized = 0;
 
     for (const task of tasks) {
       if (task.executionStatus === "failed") continue;
-      attempted++;
 
       try {
         log.debug({ taskId: task.id, title: task.title }, "Prioritizing task");
@@ -46,9 +40,11 @@ export class PrioritizeStep extends Step {
           timestamp: Date.now(),
         });
 
-        const categoryContext = task.category
-          ? `Category: ${task.category.category} / ${task.category.subcategory}`
-          : "";
+        const context = [
+          `Task: ${task.title}`,
+          `Description: ${task.description}`,
+          task.category && `Category: ${task.category.category} / ${task.category.subcategory}`,
+        ].filter(Boolean).join("\n");
 
         const { parsed } = await this.llm.requestStructured(
           [
@@ -60,9 +56,7 @@ export class PrioritizeStep extends Step {
 - Complexity and risk
 - Team velocity impact
 
-Task: ${task.title}
-Description: ${task.description}
-${categoryContext}
+${context}
 
 Assign a priority level (critical/high/medium/low), a numeric score (1-10), and explain your reasoning.`,
             },

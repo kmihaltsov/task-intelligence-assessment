@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import type { TaskStatus } from "@/lib/types";
+import { useClickOutside } from "@/hooks/use-click-outside";
 
 interface StatusSelectProps {
   value: TaskStatus;
@@ -33,18 +34,7 @@ const OPTIONS: TaskStatus[] = ["backlog", "in-progress", "completed"];
 
 export function StatusSelect({ value, onChange }: StatusSelectProps) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
+  const containerRef = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
 
   const config = STATUS_CONFIG[value];
 

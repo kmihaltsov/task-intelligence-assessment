@@ -9,9 +9,6 @@ import { createLogger } from "../logger";
 
 const log = createLogger({ component: "ActionPlanStep" });
 
-/**
- * Generates an action plan for each task.
- */
 export class ActionPlanStep extends Step {
   readonly name = "action-plan";
   readonly label = "Generating action plans";
@@ -26,12 +23,10 @@ export class ActionPlanStep extends Step {
       throw new Error("No tasks found in state");
     }
 
-    let attempted = 0;
     let planned = 0;
 
     for (const task of tasks) {
       if (task.executionStatus === "failed") continue;
-      attempted++;
 
       try {
         log.debug({ taskId: task.id, title: task.title }, "Generating action plan");
@@ -45,12 +40,12 @@ export class ActionPlanStep extends Step {
           timestamp: Date.now(),
         });
 
-        const categoryContext = task.category
-          ? `Category: ${task.category.category} / ${task.category.subcategory}`
-          : "";
-        const priorityContext = task.priority
-          ? `Priority: ${task.priority.priority} (score ${task.priority.score}/10)`
-          : "";
+        const context = [
+          `Task: ${task.title}`,
+          `Description: ${task.description}`,
+          task.category && `Category: ${task.category.category} / ${task.category.subcategory}`,
+          task.priority && `Priority: ${task.priority.priority} (score ${task.priority.score}/10)`,
+        ].filter(Boolean).join("\n");
 
         const { parsed } = await this.llm.requestStructured(
           [
@@ -58,10 +53,7 @@ export class ActionPlanStep extends Step {
               role: "user",
               content: `Generate a practical action plan for this project task. Create an ordered list of concrete, actionable steps.
 
-Task: ${task.title}
-Description: ${task.description}
-${categoryContext}
-${priorityContext}
+${context}
 
 Create a clear, actionable plan with specific steps. Assess the overall complexity.`,
             },

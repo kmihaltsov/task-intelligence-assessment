@@ -7,12 +7,11 @@ export const dynamic = "force-dynamic";
 
 const log = createLogger({ component: "API:tasks/[id]" });
 
+const VALID_STATUSES = ["backlog", "in-progress", "completed"] as const;
+
 type RouteContext = { params: Promise<{ id: string }> };
 
-/**
- * GET /api/tasks/[id] — Get a single task by ID
- */
-export async function GET(_request: NextRequest, context: RouteContext) {
+export async function GET(_request: NextRequest, context: RouteContext): Promise<NextResponse> {
   const { id } = await context.params;
   const task = taskStore.get(id);
 
@@ -23,11 +22,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   return NextResponse.json(task);
 }
 
-/**
- * PATCH /api/tasks/[id] — Inline edit: update priority, category, or action plan
- * Direct store mutation, no LLM involved.
- */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: RouteContext): Promise<NextResponse> {
   const { id } = await context.params;
 
   const task = taskStore.get(id);
@@ -47,8 +42,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const patch: Record<string, unknown> = {};
 
   if (body.status) {
-    const validStatuses = ["backlog", "in-progress", "completed"];
-    if (!validStatuses.includes(body.status)) {
+    if (!VALID_STATUSES.includes(body.status as typeof VALID_STATUSES[number])) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
     patch.status = body.status;
@@ -78,10 +72,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   }
 }
 
-/**
- * DELETE /api/tasks/[id] — Remove a task
- */
-export async function DELETE(_request: NextRequest, context: RouteContext) {
+export async function DELETE(_request: NextRequest, context: RouteContext): Promise<NextResponse> {
   const { id } = await context.params;
 
   const deleted = taskStore.delete(id);

@@ -12,10 +12,7 @@ export const dynamic = "force-dynamic";
 
 const log = createLogger({ component: "API:tasks" });
 
-/**
- * GET /api/tasks — List tasks (paginated, filterable)
- */
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = request.nextUrl;
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const pageSize = Math.min(50, Math.max(1, parseInt(searchParams.get("pageSize") || "10", 10)));
@@ -28,11 +25,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(result);
 }
 
-/**
- * POST /api/tasks — Submit tasks for processing, streams SSE events.
- * Uses ReadableStream to return SSE response immediately while pipeline runs.
- */
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   let body: SubmitTasksRequest;
   try {
     body = await request.json();

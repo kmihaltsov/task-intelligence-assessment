@@ -9,10 +9,6 @@ import { createLogger } from "../logger";
 
 const log = createLogger({ component: "ParseStep" });
 
-/**
- * Parses raw user input into structured TaskItem[].
- * First step in the pipeline — creates the task list that subsequent steps iterate over.
- */
 export class ParseStep extends Step {
   readonly name = "parse";
   readonly label = "Parsing tasks";

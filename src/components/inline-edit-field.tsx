@@ -9,9 +9,6 @@ interface InlineEditFieldProps {
   inputClassName?: string;
 }
 
-/**
- * Generic inline edit: click to edit, blur/enter to save, escape to cancel.
- */
 export function InlineEditField({
   value,
   onSave,

@@ -9,10 +9,6 @@ import { createLogger } from "../logger";
 
 const log = createLogger({ component: "CategorizeStep" });
 
-/**
- * Categorizes each task by calling the LLM per task.
- * Sets `category` and updates `executionStatus` to "categorized" on each TaskItem.
- */
 export class CategorizeStep extends Step {
   readonly name = "categorize";
   readonly label = "Categorizing tasks";
@@ -27,12 +23,10 @@ export class CategorizeStep extends Step {
       throw new Error("No tasks found in state");
     }
 
-    let attempted = 0;
     let categorized = 0;
 
     for (const task of tasks) {
       if (task.executionStatus === "failed") continue;
-      attempted++;
 
       try {
         log.debug({ taskId: task.id, title: task.title }, "Categorizing task");

@@ -14,6 +14,13 @@ const COLUMNS: { status: TaskStatus; label: string; dot: string }[] = [
   { status: "completed", label: "Completed", dot: "bg-emerald-500" },
 ];
 
+const PRIORITY_ORDER: Record<string, number> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+};
+
 export function TaskBoard() {
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("");
@@ -28,30 +35,21 @@ export function TaskBoard() {
 
   const filteredItems = data?.items ?? [];
 
-  const priorityOrder: Record<string, number> = {
-    critical: 0,
-    high: 1,
-    medium: 2,
-    low: 3,
-  };
-
   const columns = COLUMNS.map((col) => ({
     ...col,
     tasks: filteredItems
       .filter((t) => t.status === col.status)
-      .sort((a, b) => (priorityOrder[a.priority?.priority ?? ""] ?? 4) - (priorityOrder[b.priority?.priority ?? ""] ?? 4)),
+      .sort((a, b) => (PRIORITY_ORDER[a.priority?.priority ?? ""] ?? 4) - (PRIORITY_ORDER[b.priority?.priority ?? ""] ?? 4)),
   }));
 
   const totalCount = filteredItems.length;
 
-  // Keep selected task in sync with data (e.g. after status change)
   const syncedSelectedTask = selectedTask
     ? filteredItems.find((t) => t.id === selectedTask.id) ?? selectedTask
     : null;
 
   return (
     <div className="space-y-5">
-      {/* Toolbar */}
       <div className="flex items-center justify-between gap-4">
         <FilterBar
           category={category}
@@ -66,14 +64,12 @@ export function TaskBoard() {
         )}
       </div>
 
-      {/* Error */}
       {error && (
         <div className="rounded-xl bg-red-50 shadow-card p-5 ring-1 ring-inset ring-red-200/60">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {/* Loading skeleton */}
       {isLoading && (
         <div className="kanban-columns">
           <KanbanColumnSkeleton />
@@ -82,7 +78,6 @@ export function TaskBoard() {
         </div>
       )}
 
-      {/* Kanban columns */}
       {!isLoading && data && (
         <div className="kanban-columns">
           {columns.map((col) => (
@@ -90,7 +85,6 @@ export function TaskBoard() {
               key={col.status}
               className="bg-ground-100/60 rounded-xl p-2.5 pt-3 flex flex-col min-h-52"
             >
-              {/* Column header */}
               <div className="flex items-center gap-2 mb-3 px-1.5">
                 <span className={`w-2 h-2 rounded-full shrink-0 ${col.dot}`} />
                 <span className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
@@ -101,7 +95,6 @@ export function TaskBoard() {
                 </span>
               </div>
 
-              {/* Cards */}
               <div className="flex-1 space-y-2">
                 {col.tasks.map((task) => (
                   <TaskCard
@@ -122,12 +115,10 @@ export function TaskBoard() {
         </div>
       )}
 
-      {/* Global empty state */}
       {!isLoading && data && totalCount === 0 && (
         <EmptyState hasFilters={!!(category || priority)} />
       )}
 
-      {/* Detail panel */}
       {syncedSelectedTask && (
         <TaskDetailPanel
           task={syncedSelectedTask}

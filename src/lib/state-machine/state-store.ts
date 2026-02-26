@@ -1,11 +1,9 @@
-/** Interface for pipeline shared state — designed for future swap to persistent storage */
 export interface StateStore {
   get<T>(key: string): T | undefined;
   set<T>(key: string, value: T): void;
   snapshot(): Record<string, unknown>;
 }
 
-/** In-memory implementation backed by a Map */
 export class InMemoryStateStore implements StateStore {
   private store = new Map<string, unknown>();
 

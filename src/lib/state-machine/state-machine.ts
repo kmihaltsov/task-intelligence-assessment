@@ -1,5 +1,5 @@
 import { Step } from "./step";
-import type { StepEvent, EventEmitter } from "./types";
+import type { EventEmitter } from "./types";
 import { InMemoryStateStore, type StateStore } from "./state-store";
 import type { TaskStore } from "../store/task-store";
 import type { TaskItem } from "../types";
@@ -7,26 +7,14 @@ import { createLogger } from "../logger";
 
 const log = createLogger({ component: "StateMachine" });
 
-/**
- * Orchestrator that runs an ordered sequence of Steps against shared state.
- * Handles retries, event emission, and progressive persistence to TaskStore.
- */
 export class StateMachine {
   private steps: Step[] = [];
 
-  /** Chainable step registration */
   addStep(step: Step): this {
     this.steps.push(step);
     return this;
   }
 
-  /**
-   * Run the full pipeline.
-   * @param pipelineId - identifier for this pipeline run (used in events)
-   * @param emit - callback for SSE events
-   * @param store - optional server-side store for progressive persistence
-   * @param initialState - optional pre-seeded state store
-   */
   async run(
     pipelineId: string,
     emit: EventEmitter,
@@ -41,13 +29,10 @@ export class StateMachine {
     for (const step of this.steps) {
       const success = await this.executeWithRetry(pipelineId, step, state, emit);
 
-      // After each step, sync tasks to the server store
       if (store) {
-        const tasks = state.get<TaskItem[]>("tasks");
-        if (tasks) {
-          for (const task of tasks) {
-            store.save(task);
-          }
+        const tasks = state.get<TaskItem[]>("tasks") ?? [];
+        for (const task of tasks) {
+          store.save(task);
         }
       }
 
@@ -57,8 +42,7 @@ export class StateMachine {
       }
     }
 
-    const duration = Date.now() - startTime;
-    log.info({ pipelineId, duration }, "Pipeline completed");
+    log.info({ pipelineId, duration: Date.now() - startTime }, "Pipeline completed");
 
     return state;
   }
@@ -69,12 +53,12 @@ export class StateMachine {
     state: StateStore,
     emit: EventEmitter,
   ): Promise<boolean> {
-    const { maxRetries } = step.config;
+    const totalAttempts = step.config.maxRetries + 1;
 
-    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+    for (let attempt = 1; attempt <= totalAttempts; attempt++) {
       const isRetry = attempt > 1;
 
-      const event: Omit<StepEvent, "status" | "message"> = {
+      const baseEvent = {
         taskId: pipelineId,
         stepName: step.name,
         attempt,
@@ -82,10 +66,10 @@ export class StateMachine {
       };
 
       emit({
-        ...event,
-        status: isRetry ? "retrying" : "running",
+        ...baseEvent,
+        status: isRetry ? "retrying" as const : "running" as const,
         message: isRetry
-          ? `Retrying ${step.label} (attempt ${attempt}/${maxRetries + 1})`
+          ? `Retrying ${step.label} (attempt ${attempt}/${totalAttempts})`
           : `Running ${step.label}`,
       });
 
@@ -96,36 +80,28 @@ export class StateMachine {
       try {
         const stepStart = Date.now();
         const message = await step.execute(state, emit);
-        const stepDuration = Date.now() - stepStart;
 
         log.info(
-          { pipelineId, step: step.name, duration: stepDuration },
+          { pipelineId, step: step.name, duration: Date.now() - stepStart },
           "Step completed",
         );
 
-        emit({
-          ...event,
-          status: "completed",
-          message,
-        });
-
+        emit({ ...baseEvent, status: "completed", message });
         return true;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const isLastAttempt = attempt === totalAttempts;
 
-        if (attempt > maxRetries) {
+        if (isLastAttempt) {
           log.error(
             { pipelineId, step: step.name, error: errorMessage },
             "Step failed after all retries",
           );
-
           emit({
-            ...event,
+            ...baseEvent,
             status: "failed",
             message: `${step.label} failed: ${errorMessage}`,
           });
-
           return false;
         }
 

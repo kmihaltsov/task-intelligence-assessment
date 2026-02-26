@@ -1,6 +1,7 @@
 {
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
-    "interface-design@interface-design": true
+    "interface-design@interface-design": true,
+    "code-simplifier@claude-plugins-official": true
   }
 }

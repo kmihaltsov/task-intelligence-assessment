@@ -9,10 +9,6 @@ interface TaskInputProps {
   clearSignal?: number;
 }
 
-/**
- * Textarea + submit for raw task input. Supports bulk input (newline-separated).
- * Bump `clearSignal` to clear the textarea externally.
- */
 export function TaskInput({ onSubmit, disabled, clearSignal }: TaskInputProps) {
   const [value, setValue] = useState("");
 
@@ -20,12 +16,15 @@ export function TaskInput({ onSubmit, disabled, clearSignal }: TaskInputProps) {
     if (clearSignal) setValue("");
   }, [clearSignal]);
 
-  function handleSubmit() {
-    const tasks = value
+  function parseLines(): string[] {
+    return value
       .split("\n")
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
+  }
 
+  function handleSubmit() {
+    const tasks = parseLines();
     if (tasks.length === 0) return;
     onSubmit(tasks);
   }
@@ -37,9 +36,7 @@ export function TaskInput({ onSubmit, disabled, clearSignal }: TaskInputProps) {
     }
   }
 
-  const taskCount = value
-    .split("\n")
-    .filter((line) => line.trim().length > 0).length;
+  const taskCount = parseLines().length;
 
   return (
     <div className="space-y-3">

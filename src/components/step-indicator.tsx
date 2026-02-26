@@ -54,10 +54,6 @@ const stateStyles: Record<StepState, { dot: string; text: string; line: string }
   },
 };
 
-/**
- * Horizontal 4-step progress bar showing pipeline state.
- * Uses amber intelligence pulse for active steps.
- */
 export function StepIndicator({ events }: StepIndicatorProps) {
   return (
     <div className="flex items-center gap-0 w-full">

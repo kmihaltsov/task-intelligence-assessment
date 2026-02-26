@@ -8,7 +8,6 @@ const logger = pino({
       : undefined,
 });
 
-/** Create a child logger with persistent context fields */
 export function createLogger(context: { component: string; [key: string]: unknown }) {
   return logger.child(context);
 }
