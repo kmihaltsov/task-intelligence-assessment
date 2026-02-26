@@ -22,7 +22,6 @@ interface TaskRow {
   title: string;
   description: string;
   domain: string;
-  ambiguities: string;
   urls: string;
   category: string | null;
   priority: string | null;
@@ -64,7 +63,6 @@ export class SqliteTaskStore implements TaskStore {
         title            TEXT NOT NULL,
         description      TEXT NOT NULL DEFAULT '',
         domain           TEXT NOT NULL DEFAULT '',
-        ambiguities      TEXT NOT NULL DEFAULT '[]',
         urls             TEXT NOT NULL DEFAULT '[]',
         category         TEXT,
         priority         TEXT,
@@ -93,9 +91,9 @@ export class SqliteTaskStore implements TaskStore {
 
   save(task: TaskItem): void {
     const stmt = this.db.prepare(`
-      INSERT INTO tasks (id, execution_status, status, title, description, domain, ambiguities, urls,
+      INSERT INTO tasks (id, execution_status, status, title, description, domain, urls,
                          category, priority, action_plan, error, events, created_at, updated_at)
-      VALUES (@id, @execution_status, @status, @title, @description, @domain, @ambiguities, @urls,
+      VALUES (@id, @execution_status, @status, @title, @description, @domain, @urls,
               @category, @priority, @action_plan, @error, @events, @created_at, @updated_at)
       ON CONFLICT(id) DO UPDATE SET
         execution_status = @execution_status,
@@ -103,7 +101,6 @@ export class SqliteTaskStore implements TaskStore {
         title            = @title,
         description      = @description,
         domain           = @domain,
-        ambiguities      = @ambiguities,
         urls             = @urls,
         category         = @category,
         priority         = @priority,
@@ -211,7 +208,6 @@ export class SqliteTaskStore implements TaskStore {
       title: task.title,
       description: task.description,
       domain: task.domain,
-      ambiguities: JSON.stringify(task.ambiguities),
       urls: JSON.stringify(task.urls),
       category: task.category ? JSON.stringify(task.category) : null,
       priority: task.priority ? JSON.stringify(task.priority) : null,
@@ -231,7 +227,6 @@ export class SqliteTaskStore implements TaskStore {
       title: row.title,
       description: row.description,
       domain: row.domain,
-      ambiguities: JSON.parse(row.ambiguities) as string[],
       urls: JSON.parse(row.urls) as string[],
       category: row.category
         ? (JSON.parse(row.category) as CategorizedTask)

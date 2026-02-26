@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
-import type { TaskItem, TaskStatus } from "@/lib/types";
+import { useEffect, useState, useRef } from "react";
+import type { TaskItem, TaskStatus, ActionPlan } from "@/lib/types";
 import { StatusSelect } from "./ui/status-select";
+import { InlineEditField } from "./inline-edit-field";
 import { ReasoningTimeline } from "./reasoning-timeline";
 import { Button } from "./ui/button";
+
+const COMPLEXITY_OPTIONS: ActionPlan["estimatedComplexity"][] = [
+  "trivial", "simple", "moderate", "complex", "very_complex",
+];
 
 interface TaskDetailPanelProps {
   task: TaskItem;
@@ -46,6 +51,23 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
     onUpdate(task.id, { status: value });
   }
 
+  function handleDescriptionChange(value: string) {
+    onUpdate(task.id, { description: value });
+  }
+
+  function handleDomainChange(value: string) {
+    onUpdate(task.id, { domain: value });
+  }
+
+  function handleComplexityChange(value: string) {
+    const normalized = value.toLowerCase().replace(/\s+/g, "_");
+    if (COMPLEXITY_OPTIONS.includes(normalized as ActionPlan["estimatedComplexity"])) {
+      onUpdate(task.id, {
+        actionPlan: { ...task.actionPlan, estimatedComplexity: normalized },
+      });
+    }
+  }
+
   async function handleDelete() {
     const ok = await onDelete(task.id);
     if (ok) onClose();
@@ -84,25 +106,32 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
 
         {/* Body — scrollable */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-          {/* Description */}
-          {task.description && (
-            <div>
-              <p className="text-sm text-neutral-700 leading-relaxed">{task.description}</p>
-            </div>
-          )}
+          {/* Description — always visible, editable */}
+          <div>
+            <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Description</span>
+            <EditableDescription
+              value={task.description}
+              onSave={handleDescriptionChange}
+            />
+          </div>
 
           {/* Metadata row */}
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            {task.domain && (
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Domain</span>
-                <p className="text-xs text-neutral-600 mt-0.5">{task.domain}</p>
-              </div>
-            )}
+            <div>
+              <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Domain</span>
+              <p className="text-xs text-neutral-600 mt-0.5">
+                <InlineEditField value={task.domain || "—"} onSave={handleDomainChange} />
+              </p>
+            </div>
             {task.actionPlan && (
               <div>
                 <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Complexity</span>
-                <p className="text-xs text-neutral-600 mt-0.5 capitalize">{task.actionPlan.estimatedComplexity.replace("_", " ")}</p>
+                <p className="text-xs text-neutral-600 mt-0.5 capitalize">
+                  <InlineEditField
+                    value={task.actionPlan.estimatedComplexity.replace("_", " ")}
+                    onSave={handleComplexityChange}
+                  />
+                </p>
               </div>
             )}
             <div>
@@ -134,21 +163,6 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
                   </li>
                 ))}
               </ol>
-            </div>
-          )}
-
-          {/* Ambiguities */}
-          {task.ambiguities.length > 0 && (
-            <div className="rounded-lg bg-intel-50/50 px-3 py-2.5">
-              <p className="text-[10px] uppercase tracking-wider text-intel-600 font-medium mb-1.5">Ambiguities</p>
-              <ul className="space-y-1">
-                {task.ambiguities.map((a, i) => (
-                  <li key={i} className="text-xs text-intel-700 flex gap-2">
-                    <span className="text-intel-400 mt-0.5 shrink-0">?</span>
-                    {a}
-                  </li>
-                ))}
-              </ul>
             </div>
           )}
 
@@ -190,5 +204,58 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
         </div>
       </div>
     </>
+  );
+}
+
+function EditableDescription({ value, onSave }: { value: string; onSave: (v: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(draft.length, draft.length);
+    }
+  }, [editing, draft.length]);
+
+  useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+
+  function save() {
+    const trimmed = draft.trim();
+    if (trimmed !== value) {
+      onSave(trimmed);
+    }
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <textarea
+        ref={textareaRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={save}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") { setDraft(value); setEditing(false); }
+          if (e.key === "Enter" && e.metaKey) save();
+        }}
+        rows={4}
+        className="mt-1 w-full text-sm text-neutral-700 leading-relaxed rounded-md ring-1 ring-accent-300 px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 resize-y"
+        placeholder="Add a description..."
+      />
+    );
+  }
+
+  return (
+    <p
+      onClick={() => setEditing(true)}
+      className="mt-1 text-sm leading-relaxed rounded-md px-2.5 py-2 -mx-2.5 cursor-pointer hover:bg-neutral-50 transition-colors whitespace-pre-wrap"
+      title="Click to edit"
+    >
+      {value || <span className="text-neutral-400 italic">Add a description...</span>}
+    </p>
   );
 }

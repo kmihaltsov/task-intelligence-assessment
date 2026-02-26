@@ -9,7 +9,6 @@ import { z } from "zod";
 export const ParsedTaskSchema = z.object({
   title: z.string().describe("Concise task title"),
   domain: z.string().describe("Technical domain (e.g., frontend, backend, infrastructure, design)"),
-  ambiguities: z.array(z.string()).describe("Unclear aspects that might need clarification"),
   urls: z.array(z.string()).describe("Any URLs mentioned in the task"),
 });
 

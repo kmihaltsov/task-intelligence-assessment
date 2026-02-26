@@ -40,7 +40,6 @@ export interface TaskItem {
   title: string;
   description: string;
   domain: string;
-  ambiguities: string[];
   urls: string[];
   category?: CategorizedTask;
   priority?: PrioritizedTask;
@@ -68,6 +67,8 @@ export interface SubmitTasksRequest {
 /** PATCH /api/tasks/[id] request body */
 export interface PatchTaskRequest {
   status?: TaskStatus;
+  description?: string;
+  domain?: string;
   category?: Partial<CategorizedTask>;
   priority?: Partial<PrioritizedTask>;
   actionPlan?: Partial<ActionPlan>;

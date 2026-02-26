@@ -72,7 +72,6 @@ Task: ${task.title}
 Description: ${task.description}
 ${categoryContext}
 ${priorityContext}
-Ambiguities: ${task.ambiguities.join(", ") || "None"}
 ${toolContext ? `\nAdditional context from tools:\n${toolContext}` : ""}
 
 Create a clear, actionable plan with specific steps. Assess the overall complexity.`,

@@ -61,7 +61,6 @@ export class PrioritizeStep extends Step {
 Task: ${task.title}
 Description: ${task.description}
 ${categoryContext}
-Ambiguities: ${task.ambiguities.join(", ") || "None"}
 
 Assign a priority level (critical/high/medium/low), a numeric score (1-10), and explain your reasoning.`,
             },

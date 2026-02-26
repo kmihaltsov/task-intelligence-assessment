@@ -21,7 +21,6 @@ export function cleanDatabase(): void {
       title       TEXT NOT NULL,
       description TEXT NOT NULL DEFAULT '',
       domain      TEXT NOT NULL DEFAULT '',
-      ambiguities TEXT NOT NULL DEFAULT '[]',
       urls        TEXT NOT NULL DEFAULT '[]',
       category    TEXT,
       priority    TEXT,

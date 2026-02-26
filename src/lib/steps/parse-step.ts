@@ -39,7 +39,6 @@ Each distinct task should be extracted separately. If the input contains multipl
 For each task:
 - Create a concise, actionable title
 - Identify the technical domain (frontend, backend, infrastructure, design, devops, data, security, etc.)
-- Note any ambiguities or unclear aspects
 - Extract any URLs mentioned
 
 Raw input:
@@ -58,7 +57,6 @@ ${rawInput}`,
       title: t.title,
       description: "",
       domain: t.domain,
-      ambiguities: t.ambiguities,
       urls: t.urls,
       events: [],
       createdAt: now,

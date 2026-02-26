@@ -53,6 +53,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
     patch.status = body.status;
   }
+  if (body.description != null) {
+    patch.description = body.description;
+  }
+  if (body.domain != null) {
+    patch.domain = body.domain;
+  }
   if (body.category) {
     patch.category = { ...task.category, ...body.category };
   }
