@@ -11,19 +11,20 @@ export function cleanDatabase(): void {
   const db = new Database(TEST_DB_PATH);
   db.exec(`
     CREATE TABLE IF NOT EXISTS tasks (
-      id          TEXT PRIMARY KEY,
-      status      TEXT NOT NULL DEFAULT 'created',
-      title       TEXT NOT NULL,
-      description TEXT NOT NULL DEFAULT '',
-      domain      TEXT NOT NULL DEFAULT '',
-      urls        TEXT NOT NULL DEFAULT '[]',
-      category    TEXT,
-      priority    TEXT,
-      action_plan TEXT,
-      error       TEXT,
-      events      TEXT NOT NULL DEFAULT '[]',
-      created_at  INTEGER NOT NULL,
-      updated_at  INTEGER NOT NULL
+      id               TEXT PRIMARY KEY,
+      execution_status TEXT NOT NULL DEFAULT 'created',
+      status           TEXT NOT NULL DEFAULT 'backlog',
+      title            TEXT NOT NULL,
+      description      TEXT NOT NULL DEFAULT '',
+      domain           TEXT NOT NULL DEFAULT '',
+      urls             TEXT NOT NULL DEFAULT '[]',
+      category         TEXT,
+      priority         TEXT,
+      action_plan      TEXT,
+      error            TEXT,
+      events           TEXT NOT NULL DEFAULT '[]',
+      created_at       INTEGER NOT NULL,
+      updated_at       INTEGER NOT NULL
     );
     DELETE FROM tasks;
   `);
