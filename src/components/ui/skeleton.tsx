@@ -18,7 +18,7 @@ export function Skeleton({ width, height, className = "", style, ...props }: Ske
 /** Skeleton card matching the compact task card shape */
 export function TaskCardSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow-card p-3 space-y-2">
+    <div className="bg-white rounded-lg shadow-card p-3 space-y-2.5">
       <Skeleton className="h-4 w-4/5" />
       <Skeleton className="h-3.5 w-3/5" />
       <div className="flex gap-1.5 pt-0.5">
@@ -32,16 +32,15 @@ export function TaskCardSkeleton() {
 /** Skeleton for a full Kanban column with card placeholders */
 export function KanbanColumnSkeleton() {
   return (
-    <div className="bg-ground-100/50 rounded-xl p-3">
+    <div className="bg-ground-100/60 rounded-xl p-2.5 pt-3">
       {/* Column header skeleton */}
-      <div className="flex items-center gap-2 mb-3 px-1">
+      <div className="flex items-center gap-2 mb-3 px-1.5">
         <Skeleton className="h-2 w-2 rounded-full" />
-        <Skeleton className="h-3.5 w-20" />
-        <Skeleton className="h-3 w-5" />
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-4 ml-auto" />
       </div>
-      {/* Card skeletons */}
+      {/* Card skeletons — varying count per column for visual rhythm */}
       <div className="space-y-2">
-        <TaskCardSkeleton />
         <TaskCardSkeleton />
         <TaskCardSkeleton />
       </div>

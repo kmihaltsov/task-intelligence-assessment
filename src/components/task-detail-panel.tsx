@@ -6,6 +6,7 @@ import { StatusSelect } from "./ui/status-select";
 import { InlineEditField } from "./inline-edit-field";
 import { ReasoningTimeline } from "./reasoning-timeline";
 import { Button } from "./ui/button";
+import { Badge, priorityVariant } from "./ui/badge";
 
 const COMPLEXITY_OPTIONS: ActionPlan["estimatedComplexity"][] = [
   "trivial", "simple", "moderate", "complex", "very_complex",
@@ -38,7 +39,6 @@ function ExecutionStatusBadge({ status }: { status: string }) {
 }
 
 export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetailPanelProps) {
-  // Close on Escape
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -46,6 +46,12 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
+
+  // Lock body scroll while panel is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
 
   function handleStatusChange(value: TaskStatus) {
     onUpdate(task.id, { status: value });
@@ -77,56 +83,70 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-neutral-950/20 z-40 transition-opacity"
+        className="fixed inset-0 bg-neutral-950/15 z-40 backdrop-fade"
         onClick={onClose}
       />
 
       {/* Panel */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-lg z-50 flex flex-col slide-in-right">
+      <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-panel z-50 flex flex-col slide-in-right">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-neutral-100">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-base font-semibold text-neutral-900 leading-snug">
-              {task.title}
-            </h2>
-            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-              <StatusSelect value={task.status} onChange={handleStatusChange} />
+        <div className="px-6 pt-6 pb-5 bg-ground-50/80">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-semibold text-neutral-900 leading-snug">
+                {task.title}
+              </h2>
+              <div className="flex items-center gap-3 mt-3">
+                <div onClick={(e) => e.stopPropagation()}>
+                  <StatusSelect value={task.status} onChange={handleStatusChange} />
+                </div>
+                {task.priority && (
+                  <Badge variant={priorityVariant(task.priority.priority)}>
+                    {task.priority.priority}
+                  </Badge>
+                )}
+                {task.category && (
+                  <Badge variant="accent">
+                    {task.category.category}
+                  </Badge>
+                )}
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 p-2 -mr-2 -mt-1 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M4 4l8 8M12 4l-8 8" />
+              </svg>
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 p-1.5 rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 4l8 8M12 4l-8 8" />
-            </svg>
-          </button>
         </div>
 
         {/* Body — scrollable */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
           {/* Description — always visible, editable */}
           <div>
-            <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Description</span>
+            <Label>Description</Label>
             <EditableDescription
               value={task.description}
               onSave={handleDescriptionChange}
             />
           </div>
 
-          {/* Metadata row */}
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
+          {/* Metadata */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Domain</span>
-              <p className="text-xs text-neutral-600 mt-0.5">
+              <Label>Domain</Label>
+              <p className="text-xs text-neutral-600 mt-1">
                 <InlineEditField value={task.domain || "—"} onSave={handleDomainChange} />
               </p>
             </div>
             {task.actionPlan && (
               <div>
-                <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Complexity</span>
-                <p className="text-xs text-neutral-600 mt-0.5 capitalize">
+                <Label>Complexity</Label>
+                <p className="text-xs text-neutral-600 mt-1 capitalize">
                   <InlineEditField
                     value={task.actionPlan.estimatedComplexity.replace("_", " ")}
                     onSave={handleComplexityChange}
@@ -135,31 +155,29 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
               </div>
             )}
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Pipeline</span>
-              <p className="mt-0.5"><ExecutionStatusBadge status={task.executionStatus} /></p>
+              <Label>Pipeline</Label>
+              <p className="mt-1"><ExecutionStatusBadge status={task.executionStatus} /></p>
             </div>
             {task.priority && (
               <div>
-                <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Score</span>
-                <p className="text-xs font-mono text-neutral-600 mt-0.5">{task.priority.score}/10</p>
+                <Label>Score</Label>
+                <p className="text-xs font-mono text-neutral-600 mt-1">{task.priority.score}/10</p>
               </div>
             )}
           </div>
 
           {/* Action plan */}
           {task.actionPlan && (
-            <div className="rounded-lg bg-ground-50 ring-1 ring-neutral-100 p-3">
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium mb-1">Action Plan</p>
+            <div className="rounded-xl bg-ground-50 shadow-card p-4">
+              <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium mb-2">Action Plan</p>
               {task.actionPlan.summary && (
-                <p className="text-xs text-neutral-500 mb-2">{task.actionPlan.summary}</p>
+                <p className="text-xs text-neutral-500 mb-3 leading-relaxed">{task.actionPlan.summary}</p>
               )}
-              <ol className="space-y-1.5">
+              <ol className="space-y-2">
                 {task.actionPlan.steps.map((step) => (
-                  <li key={step.order} className="flex gap-2 text-xs">
-                    <span className="text-neutral-300 font-mono shrink-0 w-4 text-right tabular-nums">{step.order}.</span>
-                    <div className="min-w-0">
-                      <span className="font-medium text-neutral-700">{step.action}</span>
-                    </div>
+                  <li key={step.order} className="flex gap-2.5 text-xs">
+                    <span className="text-neutral-300 font-mono shrink-0 w-4 text-right tabular-nums mt-px">{step.order}.</span>
+                    <span className="text-neutral-700 leading-relaxed">{step.action}</span>
                   </li>
                 ))}
               </ol>
@@ -169,8 +187,8 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
           {/* URLs */}
           {task.urls.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">Referenced URLs</p>
-              <ul className="space-y-0.5">
+              <Label>Referenced URLs</Label>
+              <ul className="mt-1.5 space-y-1">
                 {task.urls.map((url, i) => (
                   <li key={i} className="text-xs text-accent-600 hover:text-accent-700 truncate transition-colors">
                     {url}
@@ -182,15 +200,15 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
 
           {/* Reasoning timeline */}
           {task.events && task.events.length > 0 && (
-            <div className="pt-3 border-t border-neutral-100/80">
+            <div className="pt-4 mt-2 border-t border-ground-200/60">
               <ReasoningTimeline events={task.events} />
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-neutral-100 flex items-center justify-between">
-          <span className="text-[10px] text-neutral-300 font-mono tabular-nums">
+        <div className="px-6 py-3 bg-ground-50/60 flex items-center justify-between">
+          <span className="text-[10px] text-neutral-400 font-mono tabular-nums">
             {new Date(task.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
           </span>
           <Button
@@ -204,6 +222,14 @@ export function TaskDetailPanel({ task, onClose, onUpdate, onDelete }: TaskDetai
         </div>
       </div>
     </>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">
+      {children}
+    </span>
   );
 }
 
@@ -243,19 +269,19 @@ function EditableDescription({ value, onSave }: { value: string; onSave: (v: str
           if (e.key === "Enter" && e.metaKey) save();
         }}
         rows={4}
-        className="mt-1 w-full text-sm text-neutral-700 leading-relaxed rounded-md ring-1 ring-accent-300 px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 resize-y"
+        className="mt-1.5 w-full text-sm text-neutral-700 leading-relaxed rounded-xl shadow-card px-3.5 py-2.5 bg-white focus:outline-none focus:shadow-card-hover resize-y"
         placeholder="Add a description..."
       />
     );
   }
 
   return (
-    <p
+    <div
       onClick={() => setEditing(true)}
-      className="mt-1 text-sm leading-relaxed rounded-md px-2.5 py-2 -mx-2.5 cursor-pointer hover:bg-neutral-50 transition-colors whitespace-pre-wrap"
+      className="mt-1.5 text-sm leading-relaxed rounded-lg px-3.5 py-2.5 cursor-pointer hover:bg-ground-100/80 transition-colors whitespace-pre-wrap min-h-[2.5rem] flex items-start"
       title="Click to edit"
     >
-      {value || <span className="text-neutral-400 italic">Add a description...</span>}
-    </p>
+      {value || <span className="text-neutral-400">Add a description...</span>}
+    </div>
   );
 }
